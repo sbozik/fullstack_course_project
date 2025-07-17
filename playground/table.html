@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="cs-cz">
+    <head>
+        <title>Ukol 2</title>
+        <meta charset="utf-8"/>
+        <meta name="author" content="Stefan"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    </head>
+    <body>
+        <table id="data">
+            <caption>Data</caption>
+            <thead>
+                <tr>
+                    <th>Jméno</th>
+                    <th>Příjmení</th>
+                    <th>Email</th>
+                    <th>Telefon</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="4">konec dat</th>
+                </tr>
+            </tfoot>
+        </table>
+        <form id="myForm">
+            <label for="first_name">Jméno: </label>
+            <input type="text" id="first_name" name="first_name" minlength="1"/>
+            <label for="last_name">Příjmení: </label>
+            <input type="text" id="last_name" name="last_name" minlength="1"/>
+            <label for="email">Email: </label>
+            <input type="email" id="email" name="email"/>
+            <label for="phone">Telefon: </label>
+            <input type="text" id="phone" name="phone" minlength="9"/>
+
+            <script>
+                var addRow = () => {
+                    const table = document.getElementById("data").querySelector("tbody");
+                    const newRow = table.insertRow(-1);
+
+                    ["phone", "email", "last_name", "first_name"].forEach((fieldName) => {
+                        const newValue = document.getElementById(fieldName).value;
+                        const newCell = newRow.insertCell(0);
+                        let newText = document.createTextNode(newValue);
+                        newCell.appendChild(newText);
+                    });
+                };
+            </script>
+            <button type="reset" onclick="addRow()">Přidej řádek</button>
+        </form>
+        <!--
+        <script>
+            const formElement = window.document.getElementById("myForm");
+            formElement?.addEventListener("submit", function (event) {
+                const formData = new FormData(window.document.getElementById("myForm"));
+                console.log(Array.from(formData.entries()));
+                event.preventDefault();
+            })
+        </script>
+        -->
+    </body>
+</html>
