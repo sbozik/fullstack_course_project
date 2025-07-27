@@ -1,0 +1,58 @@
+thead, tfoot {
+    font-weight: bold;
+    outline: 1px solid black;
+}
+
+tbody tr, tbody td {
+    border: none;
+}
+
+tbody tr:nth-child(odd) {
+    color: #041e3b;
+    background-color: #bfced5;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #041e3b;
+    color: #bfced5;
+}
+
+#data tr:hover {
+    background-color: #ba5eaf;
+}
+
+@media screen and (max-width: 500px) {
+    .container {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-evenly;
+    }
+}
+
+@media screen and (min-width: 501px) and (max-width: 900px) {
+    .container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 6px;
+    }
+    .div3 {
+        grid-row-start: 2;
+    }
+
+    .div4 {
+        grid-row-start: 2;
+    }
+
+    .div5 {
+        grid-row-start: 2;
+    }
+}
+
+@media screen and (min-width: 901px) {
+    .container {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-evenly;
+    }
+}
