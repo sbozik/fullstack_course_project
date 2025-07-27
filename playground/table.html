@@ -3,6 +3,7 @@
     <head>
         <title>Ukol 2</title>
         <meta charset="utf-8"/>
+        <link rel="stylesheet" type="text/css" href="style.css"/>
         <meta name="author" content="Stefan"/>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     </head>
@@ -25,15 +26,23 @@
                 </tr>
             </tfoot>
         </table>
-        <form id="myForm">
-            <label for="first_name">Jméno: </label>
-            <input type="text" id="first_name" name="first_name" minlength="1"/>
-            <label for="last_name">Příjmení: </label>
-            <input type="text" id="last_name" name="last_name" minlength="1"/>
-            <label for="email">Email: </label>
-            <input type="email" id="email" name="email"/>
-            <label for="phone">Telefon: </label>
-            <input type="text" id="phone" name="phone" minlength="9"/>
+        <form id="myForm" class="container">
+            <div class="div1">
+                <label for="first_name">Jméno: </label>
+                <input type="text" id="first_name" name="first_name" minlength="1"/>
+            </div>
+            <div class="div2">
+                <label for="last_name">Příjmení: </label>
+                <input type="text" id="last_name" name="last_name" minlength="1"/>
+            </div>
+            <div class="div3">
+                <label for="email">Email: </label>
+                <input type="email" id="email" name="email"/>
+            </div>
+            <div class="div4">
+                <label for="phone">Telefon: </label>
+                <input type="text" id="phone" name="phone"/>
+            </div>
 
             <script>
                 var addRow = () => {
@@ -48,7 +57,9 @@
                     });
                 };
             </script>
-            <button type="reset" onclick="addRow()">Přidej řádek</button>
+            <div class="div5">
+                <button type="reset" onclick="addRow()">Přidej řádek</button>
+            </div>
         </form>
         <!--
         <script>
