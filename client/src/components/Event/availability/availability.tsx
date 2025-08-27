@@ -1,8 +1,8 @@
-import type {DateRecord} from "../user/user.tsx";
+import type { DateRecord } from '../user/user.tsx'
 
 export type EventProps = {
-    location?: string;
-    id: string;
-    title: string;
-    dates: DateRecord[];
+  location?: string
+  id: string
+  title: string
+  dates: DateRecord[]
 }
