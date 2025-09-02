@@ -1,6 +1,7 @@
 import { render } from '@testing-library/react'
 import { Event } from './Event'
 import type { DateRecord } from './user/user'
+import { describe, it, expect } from 'vitest'
 
 const dates: DateRecord[] = [
   {
