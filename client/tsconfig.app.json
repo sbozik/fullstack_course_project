@@ -25,6 +25,13 @@
   },
   "include": [
     "src",
-    "../node_modules/vitest/globals.d.ts"
+   // "../node_modules/vitest/globals.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/**/*.spec.ts",
+    "src/**/*.spec.tsx"
   ]
 }

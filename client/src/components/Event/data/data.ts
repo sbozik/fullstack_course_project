@@ -1,6 +1,6 @@
-import type { EventProps } from '../availability/availability.tsx'
+import type { PollingEvent } from '../availability/availability'
 
-export const events: EventProps[] = [
+export const events: PollingEvent[] = [
   {
     location: 'Praha',
     id: '1',

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type { UserRecord, DateRecord } from './user/user.tsx'
+import type { UserRecord, DateRecord } from './user/user'
 
 function formDate(ts: number) {
   return new Date(ts).toLocaleDateString()

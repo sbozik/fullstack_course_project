@@ -1,12 +1,22 @@
-import { Event } from './components/Event/Event'
-import { events } from './components/Event/data/data'
+import * as React from 'react'
+import { Route, BrowserRouter, Routes, Navigate } from 'react-router-dom'
+import EventsList from './pages/EventsList'
+import EventDetail from './pages/EventDetail'
+import NewEvent from './pages/NewEvent'
+import { Navigation } from './components/Navigation/Navigation'
 
-export default function App() {
+const App: React.FC = () => {
   return (
-    <div>
-      {events.map(event => (
-        <Event key={event.id} lokace={event.location} nazev={event.title} datum={event.dates} />
-      ))}
-    </div>
+    <BrowserRouter>
+      <Navigation />
+      <Routes>
+        <Route path="/" element={<Navigate to="/events" replace />} />
+        <Route path="/events" element={<EventsList />} />
+        <Route path="/events/:id" element={<EventDetail />} />
+        <Route path="/events/new" element={<NewEvent />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
+
+export default App
