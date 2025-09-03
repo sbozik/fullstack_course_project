@@ -45,7 +45,7 @@ export const useWeather = (city?: string) => {
       return
     }
 
-    const key = raw.toUpperCase()
+    const key = raw.toLocaleUpperCase()
 
     if (cache.has(key)) {
       setState({ loading: false, data: cache.get(key)!, error: null })

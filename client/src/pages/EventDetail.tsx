@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom'
 import { data as events } from '../components/Event/data/pollData'
 import { Event } from '../components/Event/Event'
-import { WeatherForEvent } from '../components/Event/EventWeather'
+import { EventWeather } from '../components/Event/EventWeather'
 import type { PollingEvent } from '../components/Event/availability/availability'
 
 export default function EventDetail() {
@@ -14,7 +14,7 @@ export default function EventDetail() {
     <div style={{ padding: 12 }}>
       <h1>Detail události</h1>
       <Event lokace={event.location} nazev={event.title} datum={event.dates} />
-      <WeatherForEvent city={event.location} />
+      <EventWeather city={event.location} />
     </div>
   )
 }

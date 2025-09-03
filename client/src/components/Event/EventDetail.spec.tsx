@@ -3,7 +3,7 @@ import { render, screen, waitFor, cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 
 import { EventDetail } from './EventDetail'
-import { WeatherForEvent } from './EventWeather'
+import { EventWeather } from './EventWeather'
 import type { PollingEvent } from './availability/availability'
 
 const jsonResponse = (data: unknown, init?: ResponseInit): Response =>
@@ -13,12 +13,11 @@ const jsonResponse = (data: unknown, init?: ResponseInit): Response =>
     ...init,
   })
 
-afterEach(() => {
-  vi.restoreAllMocks()
-  cleanup()
-})
-
-describe('WeatherForEvent', () => {
+describe('EventWeather', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+    cleanup()
+  })
   it('shows weather for a city (happy path)', () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(jsonResponse({ results: [{ latitude: 50.08, longitude: 14.44 }] }),
     )
@@ -26,7 +25,7 @@ describe('WeatherForEvent', () => {
       }),
       )
 
-    render(<WeatherForEvent city="Praha" />)
+    render(<EventWeather city="Praha" />)
 
     expect(screen.getByText(/Načítám/i)).toBeInTheDocument()
 
@@ -42,7 +41,7 @@ describe('WeatherForEvent', () => {
       jsonResponse({ results: [] }),
     )
 
-    render(<WeatherForEvent city="AsdfQwer" />)
+    render(<EventWeather city="AsdfQwer" />)
 
     return waitFor(() => {
       expect(screen.getByText(/Nenašel jsem město/i)).toBeInTheDocument()
@@ -58,7 +57,7 @@ describe('WeatherForEvent', () => {
         jsonResponse({ message: 'fail' }, { status: 500 }),
       )
 
-    render(<WeatherForEvent city="Brno" />)
+    render(<EventWeather city="Brno" />)
 
     return waitFor(() => {
       expect(
@@ -84,6 +83,10 @@ const sampleEvent: PollingEvent = {
 }
 
 describe('<EventDetail />', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+    cleanup()
+  })
   it('renders detail for an existing event', () => {
     render(<EventDetail event={sampleEvent} />)
     expect(screen.getByText(/Detail/i)).toBeInTheDocument()

@@ -3,7 +3,7 @@ import { useWeather } from '../../hooks/useWeather'
 
 type Props = { city?: string }
 
-export const WeatherForEvent: React.FC<Props> = ({ city }) => {
+export const EventWeather: React.FC<Props> = ({ city }) => {
   const { loading, data, error } = useWeather(city)
 
   return (
