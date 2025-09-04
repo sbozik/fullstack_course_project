@@ -1,38 +1,57 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import { BrowserRouter } from 'react-router-dom'
-import { EventsList } from './EventsList'
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import { render, screen, waitFor, cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
-import type { PollingEvent } from './availability/availability'
+import { EventsList } from './EventsList'
+import { MemoryRouter } from 'react-router-dom'
 
-const mockData: PollingEvent[] = [
-  {
-    id: '1',
-    title: 'Team building',
-    location: 'Praha',
-    dates: [],
-  },
-  {
-    id: '2',
-    title: 'Workshop',
-    dates: [],
-  },
-]
+describe('<EventsList /> (fetches from API)', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+    cleanup()
+  })
+  it('renders items from API', () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          items: [
+            { id: '1', title: 'Super akce', location: 'Praha', dates: [] },
+            { id: '2', title: 'Super akce 2', location: 'Brno', dates: [] },
+          ],
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      ),
+    )
 
-describe('<EventsList />', () => {
-  it('renders list of events with links', () => {
     render(
-      <BrowserRouter>
-        <EventsList data={mockData} />
-      </BrowserRouter>,
+      <MemoryRouter>
+        <EventsList />
+      </MemoryRouter>,
     )
 
-    expect(screen.getByText(/Team building/)).toBeInTheDocument()
-    expect(screen.getByText(/Workshop/)).toBeInTheDocument()
+    return waitFor(() => {
+      expect(screen.getByText(/Super akce — Praha/i)).toBeInTheDocument()
+      expect(screen.getByText(/Super akce 2 — Brno/i)).toBeInTheDocument()
+      // Optional: links exist
+      const first = screen.getByRole('link', { name: /Super akce — Praha/i })
+      expect(first).toHaveAttribute('href', '/events/1')
+    })
+  })
 
-    expect(screen.getByText(/Team building/).closest('a')).toHaveAttribute(
-      'href',
-      '/events/1',
+  it('shows error message when API fails', () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify({ message: 'fail' }), { status: 500 }),
     )
+
+    render(
+      <MemoryRouter>
+        <EventsList />
+      </MemoryRouter>,
+    )
+
+    return waitFor(() => {
+      expect(
+        screen.getByText(/Nepodařilo se/i),
+      ).toBeInTheDocument()
+    })
   })
 })
