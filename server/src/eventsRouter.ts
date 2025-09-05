@@ -44,7 +44,7 @@ eventsRouter.post('/', (req, res, _next) => {
         return idNum > max ? idNum : max;
     }, 0);
 
-    const id = (maxId + 1).toString();
+    const id = `${maxId + 1}`;
 
     const newEvent = {
         id,
