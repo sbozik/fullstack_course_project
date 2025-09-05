@@ -1,20 +1,22 @@
 import * as React from 'react'
-import type { PollingEvent } from './availability/availability.ts'
 import { Event } from './Event'
+import { EventWeather } from './EventWeather'
+import { useEvent } from '../../hooks/useEvent'
 
-export type EventDetailProps = {
-  event: PollingEvent | null
-}
+export type EventDetailProps = { id: string }
 
-export const EventDetail: React.FC<EventDetailProps> = ({ event }) => {
-  if (!event) {
-    return <p>Event nenalezen.</p>
-  }
+export const EventDetail: React.FC<EventDetailProps> = ({ id }) => {
+  const { event, loading, error } = useEvent(id)
+
+  if (loading) return <p>Načítám…</p>
+  if (error) return <p role="alert">Nepodařilo se načíst událost</p>
+  if (!event) return <p>Událost nenalezena.</p>
 
   return (
-    <div>
-      <h1>Detail eventu</h1>
+    <div style={{ padding: 12 }}>
+      <h1>Detail události</h1>
       <Event lokace={event.location} nazev={event.title} datum={event.dates} />
+      <EventWeather city={event.location} />
     </div>
   )
 }

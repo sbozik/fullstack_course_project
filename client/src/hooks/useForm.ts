@@ -5,7 +5,7 @@ export const useForm = () => {
   type FormValues = Record<string, unknown>
 
   const submitForm = async (values: FormValues) => {
-    const response = await fetch(`/api/users/${values.id}`, {
+    const response = await fetch(`http://localhost:4000/api/events`, {
       method: 'POST',
       body: JSON.stringify(values),
       headers: { 'Content-Type': 'application/json' },

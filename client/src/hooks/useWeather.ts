@@ -58,10 +58,10 @@ export const useWeather = (city?: string) => {
     (async () => {
       try {
         const { latitude, longitude } = await getCityCoords(raw)
-        const w = await getWeather(latitude, longitude)
+        const weather = await getWeather(latitude, longitude)
         if (cancelled) return
-        cache.set(key, w)
-        setState({ loading: false, data: w, error: null })
+        cache.set(key, weather)
+        setState({ loading: false, data: weather, error: null })
       }
       catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Nepodařilo se načíst data.'
