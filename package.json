@@ -1,0 +1,11 @@
+{
+  "name": "fullstack_course_project",
+  "private": true,
+  "workspaces": ["client"],
+  "scripts": {
+    "dev:client": "npm run dev -w client",
+    "build:client": "npm run build -w client",
+    "test:client": "npm run test -w client",
+    "lint:client": "npm run lint -w client"
+  }
+}

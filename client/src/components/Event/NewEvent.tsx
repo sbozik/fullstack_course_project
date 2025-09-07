@@ -1,135 +1,142 @@
 import * as React from 'react'
-import { Formik, Form, Field, FieldArray } from 'formik'
-import type { FormikHelpers } from 'formik'
 import { useNavigate } from 'react-router-dom'
+import { Formik, Form, Field, FieldArray } from 'formik'
 
-type NewEventValues = {
+type FormValues = {
   title: string
-  location?: string
+  location: string
   dates: string[]
-}
-
-const todayISO = () => new Date().toISOString().slice(0, 10)
-
-const validate = (values: NewEventValues) => {
-  const errors: Record<string, string> = {}
-  if (!values.title || values.title.trim() === '') {
-    errors.title = 'Title is required'
-  }
-  if (!values.dates || values.dates.length === 0) {
-    errors.dates = 'Add at least one date'
-  }
-  else if (values.dates.length > 10) {
-    errors.dates = 'Max 10 dates'
-  }
-  else if (values.dates.some(d => !d)) {
-    errors.dates = 'All dates must be filled'
-  }
-  return errors
 }
 
 export const NewEvent: React.FC = () => {
   const navigate = useNavigate()
 
-  const initialValues: NewEventValues = {
+  const initialValues: FormValues = {
     title: '',
     location: '',
-    dates: [todayISO()],
+    dates: [''],
   }
 
-  const onSubmit = async (values: NewEventValues, helpers: FormikHelpers<NewEventValues>) => {
-    helpers.setSubmitting(true)
+  const toTimestamp = (d: string) => {
+    if (!d) return NaN
+    return Date.parse(d)
+  }
+
+  const onSubmit = async (values: FormValues, helpers: any) => {
+    helpers.setStatus(undefined)
+
+    const timestamps = values.dates
+      .map(toTimestamp)
+      .filter(n => Number.isFinite(n))
+
+    if (timestamps.length === 0) {
+      helpers.setStatus('Přidej aspoň jedno platné datum.')
+      return
+    }
+    if (timestamps.length > 10) {
+      helpers.setStatus('Maximálně 10 datumů.')
+      return
+    }
+
     try {
-      const timestamps = values.dates.map(d => new Date(d).getTime()).filter(n => Number.isFinite(n))
-
-      const payload = {
-        name: values.title,
-        title: values.title,
-        location: values.location || undefined,
-        dates: timestamps,
-      }
-
-      const res = await fetch('/api/events', {
+      const res = await fetch('http://localhost:4000/api/events', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          title: values.title,
+          location: values.location || undefined,
+          dates: timestamps,
+        }),
       })
 
       if (!res.ok) {
-        throw new Error(`Server responded ${res.status}`)
+        const msg = await safeMessage(res)
+        helpers.setStatus(msg || 'Odeslání se nezdařilo.')
+        return
       }
 
       navigate('/events')
     }
-    catch (err) {
-      console.error(err)
-      alert('Nepodařilo se odeslat formulář.')
-    }
-    finally {
-      helpers.setSubmitting(false)
+    catch {
+      helpers.setStatus('Chyba při odesílání.')
     }
   }
 
   return (
-    <div>
-      <h1>Nová událost</h1>
+    <div style={{ padding: 12 }}>
+      <h1>New Event</h1>
 
-      <Formik initialValues={initialValues} validate={validate} onSubmit={onSubmit}>
-        {({ values, errors, isSubmitting }) => (
+      <Formik initialValues={initialValues} onSubmit={onSubmit}>
+        {({ values, isSubmitting, status }) => (
           <Form>
-            <label>
-              Název*
-              <br />
-              <Field name="title" placeholder="Super akce" />
-            </label>
-            {errors.title && <div>{errors.title}</div>}
+            <div style={{ marginBottom: 8 }}>
+              <label style={{ display: 'block', marginBottom: 4 }}>
+                Title (required)
+              </label>
+              <Field name="title" placeholder="e.g. Team building" />
+            </div>
 
-            <label>
-              <br />
-              <br />
-              Místo
-              <br />
-              <Field name="location" placeholder="Praha" />
-            </label>
+            <div style={{ marginBottom: 8 }}>
+              <label style={{ display: 'block', marginBottom: 4 }}>
+                Location (optional)
+              </label>
+              <Field name="location" placeholder="e.g. Praha" />
+            </div>
 
-            <FieldArray name="dates">
-              {({ push, remove }) => (
-                <div>
-                  <br />
-                  <div>Datum(y)</div>
-                  {values.dates.map((_d, idx) => (
-                    <div key={idx}>
+            <div style={{ marginBottom: 8, fontWeight: 600 }}>Dates</div>
+            <FieldArray
+              name="dates"
+              render={arrayHelpers => (
+                <>
+                  {values.dates.map((_unused, idx) => (
+                    <div
+                      key={idx}
+                      style={{ display: 'flex', gap: 8, marginBottom: 6 }}
+                    >
                       <Field type="date" name={`dates.${idx}`} />
                       <button
                         type="button"
-                        onClick={() => remove(idx)}
+                        onClick={() => arrayHelpers.remove(idx)}
                         disabled={values.dates.length <= 1}
-                        aria-label={`remove date ${idx + 1}`}
                       >
-                        Odstranit
+                        Remove
                       </button>
                     </div>
                   ))}
-
                   <button
                     type="button"
-                    onClick={() => push(todayISO())}
+                    onClick={() => arrayHelpers.push('')}
                     disabled={values.dates.length >= 10}
                   >
-                    Přidat datum
+                    Add date
                   </button>
-
-                  {errors.dates && <div>{errors.dates}</div>}
-                </div>
+                </>
               )}
-            </FieldArray>
+            />
 
-            <div>
-              <button type="submit" disabled={isSubmitting}>Vytvořit</button>
+            {status && (
+              <div style={{ marginTop: 8 }}>{status}</div>
+            )}
+
+            <div style={{ marginTop: 12 }}>
+              <button type="submit" disabled={isSubmitting}>
+                Save
+              </button>
             </div>
           </Form>
         )}
       </Formik>
     </div>
   )
+}
+
+async function safeMessage(res: Response) {
+  try {
+    const j = await res.json()
+    if (j && typeof j.message === 'string') return j.message
+  }
+  catch {
+    console.error('Error')
+  }
+  return ''
 }
