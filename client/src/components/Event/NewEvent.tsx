@@ -19,6 +19,7 @@ export const NewEvent: React.FC = () => {
 
   const toTimestamp = (d: string) => {
     if (!d) return NaN
+    return Date.parse(d)
   }
 
   const onSubmit = async (values: FormValues, helpers: any) => {
