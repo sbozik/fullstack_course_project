@@ -1,41 +1,50 @@
 import { useEffect, useState } from 'react'
-import type { PollingEvent } from '../components/Event/availability/availability'
+import type { EventApi } from '../apiClient'
+import { api } from '../apiClient'
 
-type State = {
-  event: PollingEvent | null
-  loading: boolean
-  error: string | null
-}
-
-export function useEvent(id: string): State {
-  const [event, setEvent] = useState<PollingEvent | null>(null)
+export function useEvent(id: string | number | undefined) {
+  const [event, setEvent] = useState<EventApi | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (id == null) return
     let cancelled = false
-    setLoading(true)
-    setError(null)
 
-    fetch(`http://localhost:4000/api/events/${encodeURIComponent(id)}`)
-      .then((r) => {
-        if (r.status === 404) return null // “not found” is a valid outcome
-        if (!r.ok) throw new Error('Nepodařilo se načíst událost')
-        return r.json()
-      })
-      .then((json) => {
-        if (cancelled) return
-        setEvent(json)
-      })
-      .catch((err) => {
-        if (cancelled) return
-        setError(err.message || 'Nepodařilo se načíst událost')
-      })
-      .finally(() => {
-        if (cancelled) return
-        setLoading(false)
-      })
+    async function load() {
+      try {
+        const { data, error: apiErr } = await api.GET('/api/events/{id}', {
+          params: { path: { id: id as string | number } }, // <-- narrowed
+        })
 
+        const status = (apiErr as { status?: number } | undefined)?.status
+        if (status === 404) {
+          if (!cancelled) {
+            setEvent(null)
+            setLoading(false)
+            setError('Událost nenalezena')
+          }
+          return
+        }
+
+        if (apiErr) throw apiErr
+        if (!data) throw new Error('Nepodařilo se načíst detail')
+
+        if (!cancelled) {
+          setEvent(data)
+          setLoading(false)
+          setError(null)
+        }
+      }
+      catch (e) {
+        if (!cancelled) {
+          setError(e instanceof Error ? e.message : 'Chyba')
+          setLoading(false)
+        }
+      }
+    }
+
+    void load()
     return () => {
       cancelled = true
     }

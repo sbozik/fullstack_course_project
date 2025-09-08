@@ -1,0 +1,55 @@
+
+    <!DOCTYPE html>
+    <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <title>Swagger UI</title>
+            <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700|Source+Code+Pro:300,600|Titillium+Web:400,600,700" rel="stylesheet">
+            <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.24.2/swagger-ui.css" >
+            <style>
+                html {
+                    box-sizing: border-box;
+                    overflow: -moz-scrollbars-vertical;
+                    overflow-y: scroll;
+                }
+                *,
+                *:before,
+                *:after {
+                    box-sizing: inherit;
+                }
+                body {
+                    margin:0;
+                    background: #fafafa;
+                }
+                .swagger-ui .parameters-col_description input[type=text]{
+                    width: 50vw ;
+                    max-width: 50vw !important;
+                }
+            </style>
+        </head>
+        <body>
+            <div id="swagger-ui"></div>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.24.2/swagger-ui-bundle.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.24.2/swagger-ui-standalone-preset.js"></script>
+            <script>
+                window.onload = function() {
+                    var spec = {"openapi":"3.0.0","info":{"title":"Events API","version":"1.0.0"},"paths":{"/api/events":{"get":{"summary":"Get list of events","operationId":"getEvents","parameters":[{"name":"limit","in":"query","description":"List of events to return","required":false,"schema":{"type":"integer","format":"int32"}}],"responses":{"200":{"description":"A list of events","content":{"application/json":{"schema":{"$ref":"#/components/schemas/EventsList"}}}}}},"post":{"summary":"Create a new event","operationId":"createEvent","requestBody":{"required":true,"content":{"application/json":{"schema":{"allOf":[{"$ref":"#/components/schemas/Event"},{"type":"object","properties":{"id":{"nullable":true}}}]}}}},"responses":{"201":{"description":"Event created successfully","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Event"}}}}}}},"/api/events/{id}":{"get":{"summary":"Event details by ID","operationId":"getEventById","parameters":[{"name":"id","in":"path","required":true,"description":"Event details","schema":{"oneOf":[{"type":"string"},{"type":"integer"}]}}],"responses":{"200":{"description":"Event details","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Event"}}}},"404":{"description":"Not found","content":{"application/json":{"schema":{"type":"object","required":["message"],"properties":{"message":{"type":"string"}}}}}}}}}},"components":{"schemas":{"EventsList":{"type":"object","description":"A list of events","required":["items"],"properties":{"items":{"description":"Each Event object","type":"array","items":{"$ref":"#/components/schemas/Event"}}}},"Event":{"type":"object","required":["title","dates","id"],"properties":{"title":{"type":"string"},"id":{"oneOf":[{"type":"string"},{"type":"integer"}],"description":"Event identifier"},"location":{"type":"string","nullable":true},"dates":{"type":"array","items":{"type":"object","required":["timestamp","records"],"properties":{"timestamp":{"type":"integer","format":"int64","description":"Timestamp in milliseconds"},"records":{"type":"array","items":{"type":"object","required":["name","answer"],"properties":{"name":{"type":"string"},"answer":{"type":"string","enum":["yes","no","if-needed"]}}}}}}}}}}}};
+                    const ui = SwaggerUIBundle({
+                        spec: spec,
+                        dom_id: '#swagger-ui',
+                        deepLinking: true,
+                        presets: [
+                            SwaggerUIBundle.presets.apis,
+                            SwaggerUIStandalonePreset
+                        ],
+                        plugins: [
+                            SwaggerUIBundle.plugins.DownloadUrl
+                        ],
+                        layout: "StandaloneLayout"
+                    });
+                    window.ui = ui;
+                }
+            </script>
+        </body>
+    </html>
+    

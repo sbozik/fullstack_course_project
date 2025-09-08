@@ -1,0 +1,126 @@
+openapi: 3.0.0
+info:
+  title: Events API
+  version: 1.0.0
+
+paths:
+  /api/events:
+    get:
+      summary: Get list of events
+      operationId: getEvents
+      parameters:
+        - name: limit
+          in: query
+          description: List of events to return
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: A list of events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventsList'
+    post:
+      summary: Create a new event
+      operationId: createEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              # id can be omitted by client; server assigns it
+              allOf:
+                - $ref: '#/components/schemas/Event'
+                - type: object
+                  properties:
+                    id:
+                      nullable: true
+      responses:
+        '201':
+          description: Event created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+
+  /api/events/{id}:
+    get:
+      summary: Event details by ID
+      operationId: getEventById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Event details
+          schema:
+            oneOf: [{ type: string }, { type: integer }]
+      responses:
+        '200':
+          description: Event details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message:
+                    type: string
+
+components:
+  schemas:
+    EventsList:
+      type: object
+      description: A list of events
+      required:
+        - items
+      properties:
+        items:
+          description: Each Event object
+          type: array
+          items:
+            $ref: "#/components/schemas/Event"
+    Event:
+      type: object
+      required:
+        - title
+        - dates
+        - id
+      properties:
+        title:
+          type: string
+        id:
+          oneOf: [{ type: string }, { type: integer }]
+          description: Event identifier
+        location:
+          type: string
+          nullable: true
+        dates:
+          type: array
+          items:
+            type: object
+            required: [ timestamp, records ]
+            properties:
+              timestamp:
+                type: integer
+                format: int64
+                description: Timestamp in milliseconds
+              records:
+                type: array
+                items:
+                  type: object
+                  required: [ name, answer ]
+                  properties:
+                    name:
+                      type: string
+                    answer:
+                      type: string
+                      enum: [ yes, no, if-needed ]
