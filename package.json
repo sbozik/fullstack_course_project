@@ -1,11 +1,22 @@
 {
   "name": "fullstack_course_project",
   "private": true,
-  "workspaces": ["client"],
+  "workspaces": [
+    "client"
+  ],
   "scripts": {
     "dev:client": "npm run dev -w client",
+    "generate-client": "npx openapi-typescript ./doc/spec.yaml -o client/src/apischema.d.ts",
+    "generate-doc": "node createDocs.js",
     "build:client": "npm run build -w client",
     "test:client": "npm run test -w client",
     "lint:client": "npm run lint -w client"
+  },
+  "dependencies": {
+    "swagger-yaml-to-html": "^1.0.3"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.9.1",
+    "typescript": "^5.9.2"
   }
 }

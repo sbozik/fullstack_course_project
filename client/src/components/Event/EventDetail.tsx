@@ -16,7 +16,7 @@ export const EventDetail: React.FC<EventDetailProps> = ({ id }) => {
     <div style={{ padding: 12 }}>
       <h1>Detail události</h1>
       <Event lokace={event.location} nazev={event.title} datum={event.dates} />
-      <EventWeather city={event.location} />
+      <EventWeather city={event.location ?? ''} />
     </div>
   )
 }

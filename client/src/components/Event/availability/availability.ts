@@ -1,11 +1,5 @@
-import type { DateRecord } from '../user/user'
+import type { components } from '../../../apischema'
 
-export type PollingEvent = {
-  location?: string
-  title: string
-  id: string
-  dates: DateRecord[]
-}
-export type EventsListProps = {
-  data: PollingEvent[]
-}
+export type PollingEvent = components['schemas']['Event']
+// export type DateRecord = PollingEvent['dates'][number]
+// export type UserRecord = DateRecord['records'][number]

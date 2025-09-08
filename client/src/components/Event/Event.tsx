@@ -1,42 +1,45 @@
 import * as React from 'react'
-import type { UserRecord, DateRecord } from './user/user'
+import type { DateRecord } from '../../types/api'
 
-function formDate(ts: number) {
-  return new Date(ts).toLocaleDateString()
+type Props = {
+  nazev: string
+  lokace: string | null | undefined
+  datum: DateRecord[]
 }
 
-export type Props = { lokace?: string, nazev: string, datum: DateRecord[] }
-
-export const Event: React.FC<Props> = (props) => {
-  const uniqueParticipants = new Set<string>(props.datum.flatMap((day: DateRecord) => day.records.map((rec: UserRecord): string => rec.name)))
-
-  const participants: string[] = []
-  uniqueParticipants.forEach((value) => {
-    participants.push(value)
-  })
+export const Event: React.FC<Props> = ({ nazev, lokace, datum }) => {
+  const participants = Array.from(
+    new Set(
+      datum.flatMap(d => d.records.map(r => r.name)),
+    ),
+  )
 
   return (
     <table>
       <caption>
-        {props.nazev}
-        {props.lokace ? `: ${props.lokace}` : ''}
+        {nazev}
+        {lokace ? `: ${lokace}` : ''}
       </caption>
+
       <thead>
         <tr>
           <th>Účastník</th>
-          {props.datum.map(day => (<th key={day.timestamp}>{formDate(day.timestamp)}</th>))}
+          {datum.map(day => (
+            <th key={day.timestamp}>{new Date(day.timestamp).toLocaleDateString()}</th>
+          ))}
         </tr>
       </thead>
+
       <tbody>
-        {participants.map(participant => (
-          <tr key={participant}>
-            <th scope="row">{participant}</th>
-            {props.datum.map((day: DateRecord) => {
-              const record = day.records.find(rec => rec.name === participant)
-              const answer: string = record?.answer ?? '-'
+        {participants.map(name => (
+          <tr key={name}>
+            <th scope="row">{name}</th>
+
+            {datum.map((day) => {
+              const rec = day.records.find(rec => rec.name === name)
               return (
-                <td key={`${day.timestamp}:${participant}`} data-answer={answer}>
-                  {answer}
+                <td key={day.timestamp}>
+                  {rec?.answer ?? ''}
                 </td>
               )
             })}
