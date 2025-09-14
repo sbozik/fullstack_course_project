@@ -1,11 +1,17 @@
-import * as React from 'react'
+import React from 'react'
+import { Formik, Field, Form, FieldArray, ErrorMessage } from 'formik'
 import { useNavigate } from 'react-router-dom'
-import { Formik, Form, Field, FieldArray } from 'formik'
+import { createEvent } from '../../apiClient'
 
 type FormValues = {
   title: string
   location: string
   dates: string[]
+}
+
+const toTimestamp = (day: string): number => {
+  const ms = Date.parse(day)
+  return Number.isFinite(ms) ? ms : NaN
 }
 
 export const NewEvent: React.FC = () => {
@@ -17,110 +23,128 @@ export const NewEvent: React.FC = () => {
     dates: [''],
   }
 
-  const toTimestamp = (d: string) => {
-    if (!d) return NaN
-    return Date.parse(d)
-  }
-
-  const onSubmit = async (values: FormValues, helpers: any) => {
-    helpers.setStatus(undefined)
-
-    const timestamps = values.dates
-      .map(toTimestamp)
-      .filter(n => Number.isFinite(n))
-
-    if (timestamps.length === 0) {
-      helpers.setStatus('Přidej aspoň jedno platné datum.')
-      return
-    }
-    if (timestamps.length > 10) {
-      helpers.setStatus('Maximálně 10 datumů.')
-      return
-    }
-
-    try {
-      const res = await fetch('http://localhost:4000/api/events', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: values.title,
-          location: values.location || undefined,
-          dates: timestamps,
-        }),
-      })
-
-      if (!res.ok) {
-        const msg = await safeMessage(res)
-        helpers.setStatus(msg || 'Odeslání se nezdařilo.')
-        return
-      }
-
-      navigate('/events')
-    }
-    catch {
-      helpers.setStatus('Chyba při odesílání.')
-    }
-  }
-
   return (
     <div style={{ padding: 12 }}>
-      <h1>New Event</h1>
+      <h1>Nová událost</h1>
 
-      <Formik initialValues={initialValues} onSubmit={onSubmit}>
-        {({ values, isSubmitting, status }) => (
+      <Formik
+        initialValues={initialValues}
+        validate={(values) => {
+          const errors: Partial<Record<keyof FormValues, string>> = {}
+
+          if (!values.title.trim()) {
+            errors.title = 'Název je povinný'
+          }
+
+          if (values.dates.length < 1) {
+            errors.dates = 'Přidej alespoň jedno datum'
+          }
+          else if (values.dates.length > 10) {
+            errors.dates = 'Maximálně 10 dat'
+          }
+          else if (values.dates.some(d => !d || !Number.isFinite(toTimestamp(d)))) {
+            errors.dates = 'Každé datum musí být vyplněné a validní'
+          }
+
+          return errors
+        }}
+        onSubmit={async (values, helpers) => {
+          helpers.setStatus(null)
+
+          const datesMs = values.dates.map(toTimestamp)
+
+          if (datesMs.some(n => !Number.isFinite(n))) {
+            helpers.setStatus('Datum se nepodařilo převést. Zkontroluj pole s daty.')
+            return
+          }
+
+          try {
+            await createEvent({
+              title: values.title.trim(),
+              location: values.location.trim() || null,
+              dates: datesMs,
+            })
+
+            navigate('/events')
+          }
+          catch {
+            helpers.setStatus('Chyba při odesílání.')
+          }
+          finally {
+            helpers.setSubmitting(false)
+          }
+        }}
+      >
+        {({ values, isSubmitting, status, setFieldValue }) => (
           <Form>
-            <div style={{ marginBottom: 8 }}>
-              <label style={{ display: 'block', marginBottom: 4 }}>
-                Title (required)
-              </label>
-              <Field name="title" placeholder="e.g. Team building" />
-            </div>
+            <label>
+              <div>Název *</div>
+              <Field name="title" type="text" />
+              <div style={{ fontSize: 12 }}>
+                <ErrorMessage name="title" />
+              </div>
+            </label>
 
-            <div style={{ marginBottom: 8 }}>
-              <label style={{ display: 'block', marginBottom: 4 }}>
-                Location (optional)
-              </label>
-              <Field name="location" placeholder="e.g. Praha" />
-            </div>
+            <label>
+              <div>Místo</div>
+              <Field name="location" type="text" />
+              <div style={{ fontSize: 12 }}>
+                <ErrorMessage name="location" />
+              </div>
+            </label>
 
-            <div style={{ marginBottom: 8, fontWeight: 600 }}>Dates</div>
-            <FieldArray
-              name="dates"
-              render={arrayHelpers => (
-                <>
-                  {values.dates.map((_unused, idx) => (
-                    <div
-                      key={idx}
-                      style={{ display: 'flex', gap: 8, marginBottom: 6 }}
+            <div>
+              <div>Termíny (1–10)</div>
+
+              <FieldArray name="dates">
+                {({ remove, push }) => (
+                  <div>
+                    {values.dates.map((_, idx) => (
+                      <div key={idx}>
+                        <Field type="date" name={`dates.${idx}`} />
+                        <button
+                          type="button"
+                          onClick={() => remove(idx)}
+                          disabled={values.dates.length <= 1}
+                        >
+                          Odebrat
+                        </button>
+                      </div>
+                    ))}
+
+                    <button
+                      type="button"
+                      onClick={() => push('')}
+                      disabled={values.dates.length >= 10}
                     >
-                      <Field type="date" name={`dates.${idx}`} />
-                      <button
-                        type="button"
-                        onClick={() => arrayHelpers.remove(idx)}
-                        disabled={values.dates.length <= 1}
-                      >
-                        Remove
-                      </button>
+                      Přidat datum
+                    </button>
+
+                    <div style={{ fontSize: 12 }}>
+                      <ErrorMessage name="dates" />
                     </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => arrayHelpers.push('')}
-                    disabled={values.dates.length >= 10}
-                  >
-                    Add date
-                  </button>
-                </>
-              )}
-            />
+                  </div>
+                )}
+              </FieldArray>
+            </div>
 
             {status && (
-              <div style={{ marginTop: 8 }}>{status}</div>
+              <div>
+                {status}
+              </div>
             )}
 
-            <div style={{ marginTop: 12 }}>
+            <div>
               <button type="submit" disabled={isSubmitting}>
-                Save
+                Odeslat
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  void setFieldValue('dates', [''])
+                }}
+              >
+                Reset termínů
               </button>
             </div>
           </Form>
@@ -130,13 +154,4 @@ export const NewEvent: React.FC = () => {
   )
 }
 
-async function safeMessage(res: Response) {
-  try {
-    const j = await res.json()
-    if (j && typeof j.message === 'string') return j.message
-  }
-  catch {
-    console.error('Error')
-  }
-  return ''
-}
+export default NewEvent

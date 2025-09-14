@@ -23,9 +23,11 @@ export const EventWeather: React.FC<Props> = ({ city }) => {
           {data.average}
           {data.unit}
           , Min:
+          {' '}
           {data.min}
           {data.unit}
           , Max:
+          {' '}
           {data.max}
           {data.unit}
         </span>
