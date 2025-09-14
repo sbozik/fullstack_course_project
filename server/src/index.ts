@@ -2,6 +2,9 @@ import express, { NextFunction, Request, Response } from "express";
 import eventsRouter from './eventsRouter'
 import { configure } from "./middleware";
 import cors from "cors";
+import { createSchema} from "./db/db";
+
+createSchema();
 
 const port = 4000;
 const app = express();
