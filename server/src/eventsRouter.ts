@@ -1,63 +1,67 @@
 import { Router } from 'express';
-import { data as items } from "./data";
+import { getEvents, getEvent, addEvent } from "./db/db";
 
 const eventsRouter = Router();
 
 eventsRouter.get("/", (_req, res ) => {
+    const items = getEvents();
     res.json({ items });
 });
 
 eventsRouter.get("/:id", (req, res ) => {
-    const id = req.params.id
-    const event = items.find(e => String(e.id) === String(id));
-    if (!event) return res.status(404).json({ message: "Not found" });
-    res.json(event);
+    const id = Number(req.params.id)
+    if (!Number.isFinite(id)) return res.status(400).json({ message: "Invalid ID" });
+
+    try {
+        const ev = getEvent(id);
+        res.json(ev);
+    }
+    catch {
+        res.status(404).json({ message: "Not found" });
+    }
 });
 
-eventsRouter.post('/', (req, res, _next) => {
+eventsRouter.post('/', (req, res) => {
     const body = req.body as {
         title?: unknown;
         location?: unknown;
         dates?: unknown;
     };
 
-    if (typeof body !== "object" || body == null) {
+    if (!body || typeof body !== "object") {
         return res.status(400).json({ message: "Invalid JSON" });
     }
 
-    const title = body.title;
-    const location = body.location; // optional
-    const dates = body.dates;
+    const { title, location, dates } = body;
 
     if (typeof title !== "string" || title.trim() === "") {
         return res.status(422).json({ message: "Title is required" });
     }
 
     if (!Array.isArray(dates) || dates.length < 1 || dates.length > 10) {
-        return res
-            .status(422)
-            .json({ message: "Please provide 1 - 10 dates" });
+        return res.status(422).json({ message: "Please provide 1 - 10 dates" });
     }
 
-       const maxId = items.reduce((max, ev) => {
-        const idNum = Number(ev.id);
-        return idNum > max ? idNum : max;
-    }, 0);
+    const datesMs = dates.map((x) => Number(x));
+    if (datesMs.some((n) => !Number.isFinite(n))) {
+        return res.status(422).json({ message: 'All dates must be valid timestamps' });
+    }
 
-    const id = `${maxId + 1}`;
-
-    const newEvent = {
-        id,
-        title: title.trim(),
-        location: typeof location === "string" && location.trim() !== "" ? location.trim() : undefined,
-        dates: (dates as number[]).map((ts) => ({
-            timestamp: Number(ts),
-            records: [],
-        })),
+    const insertEvent = {
+        id: '0',
+        title: String(title),
+        location: location == null ? '': String(location),
+        dates: dates.map((ts: number) => ({timestamp: Number(ts), records: [] })),
     };
 
-    items.push(newEvent);
-    return res.status(201).json(newEvent);
+    try {
+        addEvent(insertEvent);
+        return res.status(201).json({ message: 'Event created' });
+    }
+    catch (e) {
+        console.error('POST /api/events failed', e);
+        return res.status(500).json({ message: 'Internal Server Error' })
+    }
 });
 
 export default eventsRouter;
